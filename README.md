@@ -21,7 +21,7 @@ Prepare your code project for interaction with Language Learning Models (LLM) li
 
 This extension provides the following settings, which can be configured in your workspace or user settings:
 
-- `prepareForLLM.tokenLimit`: The maximum token limit for the generated Markdown document. Default is 4096.
+- `prepareForLLM.tokenLimit`: The maximum token limit for the generated Markdown document. Default is 7500.
 - `prepareForLLM.selectedFiles`: List of selected files to include in the prompt. Defaults to an empty array.
 - `prepareForLLM.exclusions`: Directories or files to exclude. Defaults to `['node_modules', '.git']`.
 - `prepareForLLM.fileTypeFilter`: List of file extensions to consider. Defaults to `['.js', '.ts', '.py']`.

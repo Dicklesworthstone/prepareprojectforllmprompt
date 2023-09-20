@@ -2,9 +2,9 @@
 	"version": "2.0.0",
 	"tasks": [
 	  {
-		"type": "npm",
-		"script": "watch",
-		"problemMatcher": "$ts-webpack-watch",
+		"type": "shell",
+		"label": "pnpm watch",
+		"command": "pnpm run watch",
 		"isBackground": true,
 		"presentation": {
 		  "reveal": "never",
@@ -13,27 +13,19 @@
 		"group": {
 		  "kind": "build",
 		  "isDefault": true
-		}
+		},
+		"problemMatcher": ["$tsc-watch"]
 	  },
 	  {
-		"type": "npm",
-		"script": "watch-tests",
-		"problemMatcher": "$tsc-watch",
+		"type": "shell",
+		"label": "pnpm watch-tests",
+		"command": "pnpm run watch-tests",
 		"isBackground": true,
 		"presentation": {
 		  "reveal": "never",
 		  "group": "watchers"
 		},
 		"group": "build"
-	  },
-	  {
-		"label": "tasks: watch-tests",
-		"dependsOn": [
-		  "npm: watch",
-		  "npm: watch-tests"
-		],
-		"problemMatcher": []
 	  }
 	]
-  }
-  
+}

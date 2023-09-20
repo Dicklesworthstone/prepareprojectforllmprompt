@@ -14,7 +14,7 @@ devDependencies:
     specifier: ^10.0.1
     version: 10.0.1
   '@types/node':
-    specifier: 16.x
+    specifier: ~16.18.52
     version: 16.18.52
   '@types/sinon':
     specifier: ^10.0.16
@@ -23,19 +23,19 @@ devDependencies:
     specifier: ^1.82.0
     version: 1.82.0
   '@typescript-eslint/eslint-plugin':
-    specifier: ^6.4.1
+    specifier: ^6.7.2
     version: 6.7.2(@typescript-eslint/parser@6.7.2)(eslint@8.49.0)(typescript@5.2.2)
   '@typescript-eslint/parser':
-    specifier: ^6.4.1
+    specifier: ^6.7.2
     version: 6.7.2(eslint@8.49.0)(typescript@5.2.2)
   '@vscode/test-electron':
     specifier: ^2.3.4
     version: 2.3.4
   eslint:
-    specifier: ^8.47.0
+    specifier: ^8.49.0
     version: 8.49.0
   glob:
-    specifier: ^10.3.3
+    specifier: ^10.3.4
     version: 10.3.4
   mocha:
     specifier: ^10.2.0
@@ -47,7 +47,7 @@ devDependencies:
     specifier: ^9.4.4
     version: 9.4.4(typescript@5.2.2)(webpack@5.88.2)
   typescript:
-    specifier: ^5.1.6
+    specifier: ^5.2.2
     version: 5.2.2
   webpack:
     specifier: ^5.88.2
@@ -714,7 +714,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001538
-      electron-to-chromium: 1.4.523
+      electron-to-chromium: 1.4.524
       node-releases: 2.0.13
       update-browserslist-db: 1.0.11(browserslist@4.21.10)
     dev: true
@@ -873,8 +873,8 @@ packages:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
     dev: true
 
-  /electron-to-chromium@1.4.523:
-    resolution: {integrity: sha512-9AreocSUWnzNtvLcbpng6N+GkXnCcBR80IQkxRC9Dfdyg4gaWNUPBujAHUpKkiUkoSoR9UlhA4zD/IgBklmhzg==}
+  /electron-to-chromium@1.4.524:
+    resolution: {integrity: sha512-iTmhuiGXYo29QoFXwwXbxhAKiDRZQzme6wYVaZNoitg9h1iRaMGu3vNvDyk+gqu5ETK1D6ug9PC5GVS7kSURuw==}
     dev: true
 
   /emoji-regex@8.0.0:
