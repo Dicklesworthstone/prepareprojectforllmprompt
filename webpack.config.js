@@ -21,7 +21,9 @@ const extensionConfig = {
   },
   externals: {
     vscode: 'commonjs vscode',
-    '@dqbd/tiktoken': 'commonjs2 @dqbd/tiktoken'
+    ignore: 'commonjs ignore',
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '@dqbd/tiktoken': 'commonjs2 @dqbd/tiktoken',
   },
   resolve: {
     // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader

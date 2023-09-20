@@ -1,27 +1,48 @@
+/* eslint-disable curly */
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as fsp from 'fs/promises';
 import * as path from 'path';
+import ignore from 'ignore';
 import { get_encoding } from "@dqbd/tiktoken";
 
 const encoding = get_encoding("gpt2");
 const CONFIG_KEY = 'prepareForLLM';
 let statusBar: vscode.StatusBarItem | null = null;
 let fileTokenCache: { [filePath: string]: number } = {};
+let ig = ignore();
+let watcher: vscode.FileSystemWatcher | undefined;
+
+async function loadGitIgnore(rootPath: string) {
+  try {
+    const gitIgnoreContent = await fsp.readFile(path.join(rootPath, '.gitignore'), 'utf8');
+    ig = ignore().add(gitIgnoreContent.split(/\r?\n/));
+  } catch (e) {
+    console.error("Could not load .gitignore:", e);
+  }
+}
 
 export function activate(context: vscode.ExtensionContext) {
-  cacheTokenCounts();
-  let disposable = vscode.commands.registerCommand('extension.prepareForLLM', async () => {
-    let tokenLimit = vscode.workspace.getConfiguration(CONFIG_KEY).get('tokenLimit', 7500);
-    let exclusionList = vscode.workspace.getConfiguration(CONFIG_KEY).get('exclusions', ['node_modules', '.git']);
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders) {
-      vscode.window.showInformationMessage('No workspace is opened.');
-      return;
-    }
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  if (workspaceFolders) {
     const rootPath = workspaceFolders[0].uri.fsPath;
-    let allFiles = getAllFiles(rootPath, []);
-    const initialChoice = await vscode.window.showQuickPick(['Choose All Files', 'Choose Individual Files', 'Choose Which File Extensions to Select'], { placeHolder: 'Select method of file selection' });
-    if (!initialChoice) return;
+    loadGitIgnore(rootPath)
+      .then(() => cacheTokenCounts(rootPath))
+      .catch(err => console.error("Error initializing extension:", err));
+  }
+  const disposable = vscode.commands.registerCommand('extension.prepareForLLM', () => {
+    (async () => {
+      let tokenLimit = vscode.workspace.getConfiguration(CONFIG_KEY).get('tokenLimit', 7500);
+      let exclusionList = vscode.workspace.getConfiguration(CONFIG_KEY).get('exclusions', ['node_modules', '.git']);
+      const workspaceFolders = vscode.workspace.workspaceFolders;
+      if (!workspaceFolders) {
+        vscode.window.showInformationMessage('No workspace is opened.');
+        return;
+      }
+      const rootPath = workspaceFolders[0].uri.fsPath;
+      let allFiles = await getAllFiles(rootPath,);
+      const initialChoice = await vscode.window.showQuickPick(['Choose All Files', 'Choose Individual Files', 'Choose Which File Extensions to Select', 'Change Max Tokens'], { placeHolder: 'Select method of file selection' });
+      if (!initialChoice) { return; }
     if (!statusBar) {
       statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
       statusBar.show();
@@ -34,26 +55,49 @@ export function activate(context: vscode.ExtensionContext) {
     };
     let selectedFiles: string[] = [];
     const previouslySelectedFiles: string[] = context.globalState.get('previouslySelectedFiles', []);
-    if (initialChoice === 'Choose Individual Files') {
 
-      const choices: { label: string, picked: boolean }[] = allFiles
-      .filter(filePath => !exclusionList.some(ex => filePath.includes(ex)))
+
+    if (initialChoice === 'Change Max Tokens') {
+      const newTokenLimit = await vscode.window.showInputBox({
+        prompt: 'Enter a new Max Tokens value (2000-50000)',
+        validateInput: (input) => {
+          const value = Number(input);
+          if (isNaN(value) || value < 2000 || value > 50000) {
+            return 'Please enter a number between 2000 and 50000.';
+          }
+          return null;
+        }
+      });
+
+      if (newTokenLimit !== undefined) {
+        const newTokenLimitNum = Number(newTokenLimit);
+        await vscode.workspace.getConfiguration(CONFIG_KEY).update('tokenLimit', newTokenLimitNum, vscode.ConfigurationTarget.Workspace);
+        return;
+      }
+    }
+
+    if (initialChoice === 'Choose Individual Files') {
+      const filteredFiles = allFiles
+      .filter(filePath => getLanguageName(path.extname(filePath).slice(1)) !== undefined)
+      .filter(filePath => {
+        const relPath = path.relative(rootPath, filePath);
+        return !ig.ignores(relPath);
+      });
+      const choices: { label: string, picked: boolean }[] = filteredFiles
+      .filter(filePath => fileTokenCache[filePath] > 0)
       .map(filePath => {
         const tokenCount = fileTokenCache[filePath] || 0;
         return { label: `${filePath} (${tokenCount} tokens)`, picked: previouslySelectedFiles.includes(filePath) };
       });
-
-      let currentTokens = 0;
+    
+  
       const quickPick = vscode.window.createQuickPick<vscode.QuickPickItem>();
       quickPick.items = choices;
       quickPick.canSelectMany = true;
       quickPick.placeholder = 'Select individual files';
-      
-      // New code to update selectedItems based on globalState
       const previouslySelectedItems = choices.filter(item => previouslySelectedFiles.includes(item.label.split(" ")[0]));
       quickPick.selectedItems = previouslySelectedItems;
 
-      // Update the status bar as the selection changes
       quickPick.onDidChangeSelection(() => {
         const currentTokens = quickPick.selectedItems.reduce((acc, item) => {
           const filePath = item.label.split(" ")[0];
@@ -75,11 +119,20 @@ export function activate(context: vscode.ExtensionContext) {
       await context.globalState.update('previouslySelectedFiles', selectedFiles);
 
     } else {
-      const availableExtensions: string[] = Array.from(new Set(allFiles.map((file: string) => path.extname(file))));
+      const filteredFiles = allFiles
+      .filter(filePath => getLanguageName(path.extname(filePath).slice(1)) !== undefined)
+      .filter(filePath => {
+        const relPath = path.relative(rootPath, filePath);
+        return !ig.ignores(relPath);
+      });
+      const availableExtensions: string[] = Array.from(new Set(filteredFiles
+        .filter(filePath => fileTokenCache[filePath] > 0)
+        .map((file: string) => path.extname(file))
+      ));
       const selectedExtensions = await vscode.window.showQuickPick(availableExtensions, { canPickMany: true, placeHolder: 'Select file extension(s)' }) || [];
       selectedFiles = allFiles.filter((file: string) => selectedExtensions.includes(path.extname(file)));
     }
-    if (selectedFiles.length === 0) return;
+    if (selectedFiles.length === 0) {return;}
     let langSet: Set<string> = new Set();
     let prompt: string = '';
     let currentTokens: number = 0;
@@ -87,7 +140,7 @@ export function activate(context: vscode.ExtensionContext) {
     let batch: string[] = [];
     let currentBatchTokens: number = 0;
     for (const filePath of selectedFiles) {
-      if (exclusionList.some((ex: string) => filePath.includes(ex)) || !fs.existsSync(filePath) || filePath.startsWith('Untitled')) continue;
+      if (exclusionList.some((ex: string) => filePath.includes(ex)) || !fs.existsSync(filePath) || filePath.startsWith('Untitled')) {continue;}
       const stats: fs.Stats = fs.statSync(filePath);
       totalSize += stats.size;
       if (totalSize > 1024 * 1024) {
@@ -124,22 +177,62 @@ export function activate(context: vscode.ExtensionContext) {
       }
       vscode.workspace.getConfiguration(CONFIG_KEY).update('previouslySelectedFiles', selectedFiles, vscode.ConfigurationTarget.Workspace);    
     }
-  });
-  context.subscriptions.push(disposable);
+    watcher = vscode.workspace.createFileSystemWatcher("**/*.*");
+    watcher.onDidChange(async (uri) => {
+      const filePath = uri.fsPath;
+      const relPath = path.relative(rootPath, filePath);
+      const ext = path.extname(filePath).slice(1);
+      const langName = getLanguageName(ext);
+
+      if (!ig.ignores(relPath) && langName) {
+        const content = await fsp.readFile(filePath, 'utf-8');
+        const sanitizedContent = content.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+        const filePrompt = `\n---\n\n${filePath}\n\`\`\`${langName}\n${sanitizedContent}\n\`\`\`\n`;
+        const tokens = encoding.encode(filePrompt);
+        fileTokenCache[filePath] = tokens.length;
+      }
+    });
+    watcher.onDidDelete((uri) => {
+      const filePath = uri.fsPath;
+      delete fileTokenCache[filePath];
+    });
+  })();
+});
+if (watcher) {
+  context.subscriptions.push(watcher);
+}
+context.subscriptions.push(disposable);
 }
 
-export function deactivate() {}
-function getAllFiles(dirPath: string, arrayOfFiles: string[] = []): string[] {
-  const files: string[] = fs.readdirSync(dirPath);
-  arrayOfFiles = arrayOfFiles || [];
-  files.forEach((file: string) => {
-    const absolute: string = path.join(dirPath, file);
-    if (fs.statSync(absolute).isDirectory()) {
-      arrayOfFiles = getAllFiles(absolute, arrayOfFiles);
-    } else if (!absolute.startsWith('Untitled')) {
-      arrayOfFiles.push(absolute);
-    }
-  });
+export function deactivate() {
+  if (statusBar) {
+    statusBar.dispose();
+  }
+  if (watcher) {
+    watcher.dispose();
+  }
+}
+
+async function getAllFiles(dirPath: string): Promise<string[]> {
+  const arrayOfFiles: string[] = [];
+  try {
+    const files = await fsp.readdir(dirPath);
+    await Promise.all(files.map(async file => {
+      const absolute = path.join(dirPath, file);
+      try {
+        if ((await fsp.stat(absolute)).isDirectory()) {
+          const subFiles = await getAllFiles(absolute);
+          arrayOfFiles.push(...subFiles);
+        } else {
+          arrayOfFiles.push(absolute);
+        }
+      } catch (err) {
+        console.warn(`Skipping file/directory ${absolute} due to error: ${err}`);
+      }
+    }));
+  } catch (err) {
+    console.warn(`Skipping directory ${dirPath} due to error: ${err}`);
+  }
   return arrayOfFiles;
 }
 
@@ -148,24 +241,25 @@ function getLanguageName(extension: string): string {
   return langMap[extension] || extension;
 }
 
-function cacheTokenCounts(): void {
-  if (statusBar) {
-    statusBar.text = `Caching tokens...`;
-  }
-  const workspaceFolders = vscode.workspace.workspaceFolders;
-  if (!workspaceFolders) return;
-  const rootPath: string = workspaceFolders[0].uri.fsPath;
-  const allFiles: string[] = getAllFiles(rootPath, []);
+async function cacheTokenCounts(rootPath: string): Promise<void> {
+  if (statusBar) statusBar.text = `Caching tokens...`;
+  const allFiles: string[] = await getAllFiles(rootPath);
   for (const filePath of allFiles) {
-    if (!fs.existsSync(filePath)) continue;
-    const content: string = fs.readFileSync(filePath, 'utf-8').replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
-    const lang: string = path.extname(filePath).slice(1);
-    const languageName: string = getLanguageName(lang);
-    const filePrompt: string = `\n---\n\n${filePath}\n\`\`\`${languageName}\n${content}\n\`\`\`\n`;
-    const tokens: Uint32Array = encoding.encode(filePrompt);  // Change the type to Uint32Array
-    fileTokenCache[filePath] = tokens.length;
+    const relPath = path.relative(rootPath, filePath);
+    if (ig.ignores(relPath)) continue; // Skip files matching .gitignore
+    const ext = path.extname(filePath).slice(1);
+    if (!getLanguageName(ext)) continue; // Skip files not in langMap
+    try {
+      const content = await fsp.readFile(filePath, 'utf-8');
+      const sanitizedContent = content.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+      const lang = getLanguageName(ext);
+      const filePrompt = `\n---\n\n${filePath}\n\`\`\`${lang}\n${sanitizedContent}\n\`\`\`\n`;
+      const tokens = encoding.encode(filePrompt);
+      fileTokenCache[filePath] = tokens.length;
+    } catch (err) {
+      console.warn(`Could not read file ${filePath} due to error: ${err}`);
+    }
   }
-  if (statusBar) {
-    statusBar.text = `Caching complete`;
-  }  
+  if (statusBar) statusBar.text = `Caching complete`;
 }
+

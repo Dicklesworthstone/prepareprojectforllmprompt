@@ -3,6 +3,7 @@
 out/**
 node_modules/**
 !node_modules/@dqbd/tiktoken/**/*
+!node_modules/ignore/**/*
 src/**
 .gitignore
 .yarnrc
