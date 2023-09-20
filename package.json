@@ -4,6 +4,7 @@
   "description": "Automatically prepares and formats small code projects for input into language models.",
   "version": "0.0.1",
   "publisher": "JeffreyEmanuel",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.80.0"
   },

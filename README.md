@@ -23,13 +23,13 @@ Transform your small-to-medium scale code project into a Markdown document suita
 - **Token Counter**: Keeps track of the token count and displays it in the status bar.
 - **Token Limit**: Configurable maximum token limit for the generated Markdown output.
 
-### Exclusions
-
-- **Exclusion List**: Specify directories or files to be excluded from selection.
-
 ### Previous Selections
 
 - **Memory**: Remembers your previous file selection choices and pre-selects them the next time.
+
+## Visual Studio Marketplace
+
+This extension is available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=JeffreyEmanuel.prepareprojectforllmprompt) for Visual Studio Code.
 
 ## Requirements
 
