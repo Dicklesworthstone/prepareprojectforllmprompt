@@ -8,7 +8,7 @@ Transform your small-to-medium scale code project into a Markdown document suita
 - **Token Management**: Takes care of token limits for the generated Markdown document to ensure LLM compatibility.
 - **Dynamic File Selection**: Offers multiple methods for selecting code files, including individual selection and extension-based filtering.
 
-![Demo]([images/demo.png](https://github.com/Dicklesworthstone/prepareprojectforllmprompt/raw/master/prepare_for_llm_vscode_extension_demo.gif))
+![Demo](https://github.com/Dicklesworthstone/prepareprojectforllmprompt/raw/master/prepare_for_llm_vscode_extension_demo.gif)
 
 ## Features
 
