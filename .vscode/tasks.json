@@ -25,7 +25,8 @@
 		  "reveal": "never",
 		  "group": "watchers"
 		},
-		"group": "build"
+		"group": "build",
+		"problemMatcher": ["$tsc-watch"]
 	  }
 	]
 }

@@ -12,6 +12,10 @@
   "activationEvents": [
     "onCommand:extension.prepareForLLM"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dicklesworthstone/prepareprojectforllmprompt"
+  },
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -43,7 +47,7 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run package",
+    "vscode:prepublish": "pnpm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "package": "webpack --mode production --devtool hidden-source-map",
@@ -52,7 +56,7 @@
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./dist/test/runTest.js"
-  },
+  },  
   "devDependencies": {
     "@types/mocha": "^10.0.1",
     "@types/node": "~16.18.52",
