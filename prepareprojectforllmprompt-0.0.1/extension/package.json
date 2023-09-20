@@ -3,9 +3,8 @@
   "displayName": "PrepareProjectForLLMPrompt",
   "description": "Automatically prepares and formats small code projects for input into language models.",
   "version": "0.0.1",
-  "publisher": "JeffreyEmanuel",
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.82.0"
   },
   "categories": [
     "Other"
@@ -62,7 +61,7 @@
     "@types/mocha": "^10.0.1",
     "@types/node": "~16.18.52",
     "@types/sinon": "^10.0.16",
-    "@types/vscode": "^1.80.0",
+    "@types/vscode": "^1.82.0",
     "@typescript-eslint/eslint-plugin": "^6.7.2",
     "@typescript-eslint/parser": "^6.7.2",
     "@vscode/test-electron": "^2.3.4",

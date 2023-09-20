@@ -2,6 +2,7 @@
 .vscode-test/**
 out/**
 node_modules/**
+!node_modules/@dqbd/tiktoken/**/*
 src/**
 .gitignore
 .yarnrc
@@ -11,3 +12,5 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+prepare_for_llm_vscode_extension_demo.gif
+script_to_set_up_project.sh

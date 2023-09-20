@@ -15,12 +15,12 @@ devDependencies:
     version: 10.0.1
   '@types/node':
     specifier: ~16.18.52
-    version: 16.18.52
+    version: 16.18.53
   '@types/sinon':
     specifier: ^10.0.16
     version: 10.0.16
   '@types/vscode':
-    specifier: ^1.82.0
+    specifier: ^1.80.0
     version: 1.82.0
   '@typescript-eslint/eslint-plugin':
     specifier: ^6.7.2
@@ -267,8 +267,8 @@ packages:
     resolution: {integrity: sha512-/fvYntiO1GeICvqbQ3doGDIP97vWmvFt83GKguJ6prmQM2iXZfFcq6YE8KteFyRtX2/h5Hf91BYvPodJKFYv5Q==}
     dev: true
 
-  /@types/node@16.18.52:
-    resolution: {integrity: sha512-sm2aph6cRSsTMFYFgI+RpPLunXO9ClJkpizUVdT7KmGeyfQ14xnjTMT/f3MHcfKqevXqGT6BgVFzW8wcEoDUtA==}
+  /@types/node@16.18.53:
+    resolution: {integrity: sha512-vVmHeo4tpF8zsknALU90Hh24VueYdu45ZlXzYWFbom61YR4avJqTFDC3QlWzjuTdAv6/3xHaxiO9NrtVZXrkmw==}
     dev: true
 
   /@types/semver@7.5.2:
@@ -1385,7 +1385,7 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 16.18.52
+      '@types/node': 16.18.53
       merge-stream: 2.0.0
       supports-color: 8.1.1
     dev: true
